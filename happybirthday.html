@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>生日快乐 - 袁铭</title>
+  <style>
+    /* 基础样式与全局背景（Hello Kitty 渐变粉色系） */
+    body,
+    html {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      font-family: 'Comic Sans MS', 'Microsoft YaHei', sans-serif;
+      background: linear-gradient(135deg, #ffe6f2 0%, #ffcce6 100%);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    /* 第一幕：登录弹窗 */
+    #scene1 {
+      background: rgba(255, 255, 255, 0.9);
+      padding: 40px;
+      border-radius: 20px;
+      box-shadow: 0 10px 30px rgba(255, 105, 180, 0.2);
+      text-align: center;
+      border: 3px solid #ffb3d9;
+      z-index: 100;
+      position: absolute;
+    }
+
+    .input-group {
+      margin-bottom: 20px;
+      text-align: left;
+    }
+
+    .input-group label {
+      display: block;
+      color: #ff66a3;
+      font-weight: bold;
+      margin-bottom: 5px;
+    }
+
+    .input-group input {
+      width: 100%;
+      padding: 10px;
+      border: 2px solid #ffcce6;
+      border-radius: 10px;
+      outline: none;
+      box-sizing: border-box;
+      color: #ff66a3;
+      font-weight: bold;
+    }
+
+    .btn-group {
+      display: flex;
+      justify-content: space-between;
+      gap: 15px;
+    }
+
+    button {
+      padding: 10px 20px;
+      border: none;
+      border-radius: 20px;
+      cursor: pointer;
+      font-weight: bold;
+      transition: all 0.3s;
+      flex: 1;
+    }
+
+    .btn-ok {
+      background: #ff66a3;
+      color: white;
+      box-shadow: 0 4px 10px rgba(255, 102, 163, 0.4);
+    }
+
+    .btn-cancel {
+      background: #f0f0f0;
+      color: #888;
+    }
+
+    button:active {
+      transform: scale(0.95);
+    }
+
+    /* 第二幕：气泡画面 */
+    #scene2 {
+      display: none;
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      top: 0;
+      left: 0;
+      z-index: 50;
+    }
+
+    .bubble {
+      position: absolute;
+      background: linear-gradient(135deg, #ffffff, #ffe6f2);
+      border: 2px solid #ff99c2;
+      color: #ff4d94;
+      padding: 12px 20px;
+      border-radius: 20px;
+      border-bottom-left-radius: 5px;
+      /* 聊天气泡小尾巴感 */
+      font-size: 14px;
+      font-weight: bold;
+      box-shadow: 0 5px 15px rgba(255, 153, 194, 0.3);
+      animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+      opacity: 0;
+      transform: scale(0.5);
+      max-width: 200px;
+    }
+
+    @keyframes popIn {
+      to {
+        opacity: 1;
+        transform: scale(1);
+      }
+    }
+
+    /* 第三幕：粒子特效画布 */
+    #scene3 {
+      display: none;
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 10;
+    }
+  </style>
+</head>
+
+<body>
+
+  <div id="scene1">
+    <h2 style="color: #ff66a3; margin-top: 0;">💌 系统验证</h2>
+    <div class="input-group">
+      <label>用户名</label>
+      <input type="text" value="袁铭" readonly>
+    </div>
+    <div class="input-group">
+      <label>密码</label>
+      <input type="password" id="pwdInput">
+    </div>
+    <div class="btn-group">
+      <button class="btn-cancel" onclick="document.getElementById('pwdInput').value=''">取消</button>
+      <button class="btn-ok" onclick="checkLogin()">确定</button>
+    </div>
+  </div>
+
+  <div id="scene2"></div>
+
+  <canvas id="scene3"></canvas>
+
+  <script>
+    // --- 第一幕逻辑：密码验证 ---
+    function checkLogin() {
+      const pwd = document.getElementById('pwdInput').value;
+      if (pwd === '0410') {
+        document.getElementById('scene1').style.display = 'none';
+        startScene2();
+      } else {
+        // 密码错误时的轻微抖动效果提示，不使用alert
+        const box = document.getElementById('scene1');
+        box.style.transform = 'translateX(10px)';
+        setTimeout(() => box.style.transform = 'translateX(-10px)', 50);
+        setTimeout(() => box.style.transform = 'translateX(10px)', 100);
+        setTimeout(() => box.style.transform = 'translateX(0)', 150);
+        document.getElementById('pwdInput').value = '';
+      }
+    }
+
+    // --- 第二幕逻辑：30组 Hello Kitty 风祝福气泡 ---
+    const wishes = [
+      "🎀袁铭，生日快乐！", "愿你每天像HelloKitty一样可爱！", "岁岁平安，快乐无边🐾",
+      "好运连连，惊喜不断！", "👑永远18岁，永远闪耀！", "袁铭宝贝，天天开心！",
+      "梦想成真，未来可期！", "暴富暴美，烦恼全消！💖", "吃不胖，睡得香！🎂",
+      "每一天都充满阳光！☀️", "笑容甜甜，好运满满！", "愿你的世界充满粉色泡泡！",
+      "🎈袁铭，祝你年年有今日！", "岁岁有今朝，永远幸福！", "愿温柔与你同在！",
+      "所有的美好都奔向你！", "✨星河长明，做最闪亮的自己！", "愿你被世界温柔以待！",
+      "快乐不仅今天，而是永远！", "袁铭，心想事成！🎉", "保持热爱，奔赴山海！",
+      "愿你眼里有光，心中有爱！", "每天都要萌萌哒！🐾", "祝你平安喜乐，万事胜意！",
+      "愿你一生努力，一生被爱！", "想要的都拥有，得不到的释怀！", "👑袁铭，做自己的小公主！",
+      "愿你的生活比蜜甜！🍯", "每天醒来都是美好开始！", "生日大快乐，我的袁铭！💖"
+    ];
+
+    function startScene2() {
+      const scene2 = document.getElementById('scene2');
+      scene2.style.display = 'block';
+
+      // 为了避免重叠，我们将屏幕划分为网格 (6列 x 5行)
+      const cols = 6;
+      const rows = 5;
+      let cells = Array.from({ length: 30 }, (_, i) => i);
+      cells.sort(() => Math.random() - 0.5); // 随机打乱位置
+
+      let count = 0;
+      const interval = setInterval(() => {
+        const bubble = document.createElement('div');
+        bubble.className = 'bubble';
+        bubble.innerText = wishes[count];
+
+        // 计算当前气泡在网格中的位置
+        const cellIndex = cells[count];
+        const cX = cellIndex % cols;
+        const cY = Math.floor(cellIndex / cols);
+
+        // 在网格内加入一点随机偏移，使其显得自然
+        const leftPercent = (cX * (100 / cols)) + Math.random() * 5 + 2;
+        const topPercent = (cY * (100 / rows)) + Math.random() * 5 + 5;
+
+        bubble.style.left = leftPercent + '%';
+        bubble.style.top = topPercent + '%';
+
+        scene2.appendChild(bubble);
+        count++;
+
+        if (count >= wishes.length) {
+          clearInterval(interval);
+          // 所有气泡展示完毕，停留3秒后进入粒子动画
+          setTimeout(transitionToScene3, 3000);
+        }
+      }, 400); // 每400毫秒弹出一个
+    }
+
+    // --- 第三幕逻辑：过渡与粒子聚焦合成 ---
+    function transitionToScene3() {
+      const scene2 = document.getElementById('scene2');
+      scene2.style.transition = 'opacity 1.5s';
+      scene2.style.opacity = 0;
+      setTimeout(() => {
+        scene2.style.display = 'none';
+        startScene3();
+      }, 1500);
+    }
+
+    function startScene3() {
+      const canvas = document.getElementById('scene3');
+      const ctx = canvas.getContext('2d');
+      canvas.style.display = 'block';
+
+      let w = canvas.width = window.innerWidth;
+      let h = canvas.height = window.innerHeight;
+
+      // 临时绘制文字以提取像素点
+      ctx.fillStyle = "white";
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+
+      // 响应式字体大小
+      let fontSize1 = Math.min(w / 4, 150);
+      let fontSize2 = Math.min(w / 8, 60);
+
+      ctx.font = `bold ${fontSize1}px 'Microsoft YaHei'`;
+      ctx.fillText("袁铭", w / 2, h / 2 - 40);
+
+      ctx.font = `bold ${fontSize2}px 'Comic Sans MS', Arial`;
+      ctx.fillText("happy birthday", w / 2, h / 2 + fontSize1 / 2 + 20);
+
+      // 获取像素数据
+      const imgData = ctx.getImageData(0, 0, w, h).data;
+      ctx.clearRect(0, 0, w, h); // 清空画布准备画粒子
+
+      const particles = [];
+      const step = 4; // 采样步长，越小粒子越多
+
+      // Hello kitty 风格渐变色系
+      const colors = ['#ff66a3', '#ff99c2', '#ff4d94', '#ffb3d9'];
+
+      for (let y = 0; y < h; y += step) {
+        for (let x = 0; x < w; x += step) {
+          const alpha = imgData[((y * w) + x) * 4 + 3];
+          if (alpha > 128) {
+            particles.push({
+              targetX: x,
+              targetY: y,
+              // 初始位置随机散布在屏幕边缘或外部
+              x: Math.random() * w * 2 - w / 2,
+              y: Math.random() * h * 2 - h / 2,
+              vx: 0,
+              vy: 0,
+              color: colors[Math.floor(Math.random() * colors.length)]
+            });
+          }
+        }
+      }
+
+      // 动画循环
+      function animate() {
+        ctx.clearRect(0, 0, w, h);
+        let allSettled = true;
+
+        for (let i = 0; i < particles.length; i++) {
+          const p = particles[i];
+          const dx = p.targetX - p.x;
+          const dy = p.targetY - p.y;
+
+          // 弹簧物理效果
+          p.vx += dx * 0.015;
+          p.vy += dy * 0.015;
+
+          // 摩擦力
+          p.vx *= 0.82;
+          p.vy *= 0.82;
+
+          p.x += p.vx;
+          p.y += p.vy;
+
+          // 判断是否完全静止
+          if (Math.abs(dx) > 0.5 || Math.abs(dy) > 0.5 || Math.abs(p.vx) > 0.5) {
+            allSettled = false;
+          }
+
+          ctx.fillStyle = p.color;
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, 2.5, 0, Math.PI * 2);
+          ctx.fill();
+        }
+
+        if (!allSettled) {
+          requestAnimationFrame(animate);
+        }
+      }
+      animate();
+    }
+
+    // 窗口大小改变时重绘画布（防止变形）
+    window.addEventListener('resize', () => {
+      const canvas = document.getElementById('scene3');
+      if (canvas.style.display === 'block') {
+        startScene3();
+      }
+    });
+  </script>
+</body>
+
+</html>
